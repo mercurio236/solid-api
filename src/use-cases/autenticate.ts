@@ -3,7 +3,7 @@ import { InvalidCredentialsError } from "./errors/invalid-credentials-error";
 import { compare } from "bcryptjs";
 import { User } from "@prisma/client";
 
-interface AuthenticateUseCAseRequest {
+interface AuthenticateUseCaseRequest {
     email: string
     password: string
 }
@@ -15,7 +15,7 @@ interface AuthenticateUseCaseResponse {
 export class AuthenticateUseCase{
     constructor(private usersRepository: UsersRepository){}
 
-    async execute({email, password}: AuthenticateUseCAseRequest): Promise<AuthenticateUseCaseResponse> {
+    async execute({email, password}: AuthenticateUseCaseRequest): Promise<AuthenticateUseCaseResponse> {
         const user = await this.usersRepository.findByEmail(email)
 
         if(!user){
