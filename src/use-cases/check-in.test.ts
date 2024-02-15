@@ -1,29 +1,27 @@
-import { expect, it, describe, beforeEach, vi, afterEach } from 'vitest'
 import { InMemoryCheckInsRespository } from '@/repositories/in-memory/in-memory-check-ins-repository'
-import { CheckInUseCase } from './check-in'
+import { expect, describe, it, beforeEach, vi, afterEach } from 'vitest'
+import { CheckInUseCase } from '@/use-cases/check-in'
 import { InMemoryGymRepository } from '@/repositories/in-memory/in-memory-gyms-repository'
 import { Decimal } from '@prisma/client/runtime/library'
 
-/* const userRepository = new InMemoryUsersRepository()
-const registerUserCAse = new RegisterUseCase(userRepository) */
 
-let checkInRepository: InMemoryCheckInsRespository
-let gymRepository: InMemoryGymRepository
+let checkInsRepository: InMemoryCheckInsRespository
+let gymsRepository: InMemoryGymRepository
 let sut: CheckInUseCase
-describe('Check-in Use Case', () => {
-    
-  beforeEach(() => {
-    checkInRepository = new InMemoryCheckInsRespository()
-    gymRepository = new InMemoryGymRepository()
-    sut = new CheckInUseCase(checkInRepository, gymRepository)
 
-    gymRepository.items.push({
-        id:'gym-01',
-        title:'Academia',
-        description:'',
-        latitude: new Decimal(0),
-        longetitude: new Decimal(0),
-        phone:''
+describe('Check-in Use Case', () => {
+  beforeEach(async () => {
+    checkInsRepository = new InMemoryCheckInsRespository()
+    gymsRepository = new InMemoryGymRepository()
+    sut = new CheckInUseCase(checkInsRepository, gymsRepository)
+
+    await gymsRepository.items.push({
+      id: 'gym-01',
+      title: 'JavaScript Gym',
+      description: '',
+      phone: '',
+      latitude: new Decimal(-27.2092052),
+      longitude: new Decimal(-49.6401091),
     })
 
     vi.useFakeTimers()
@@ -32,46 +30,46 @@ describe('Check-in Use Case', () => {
   afterEach(() => {
     vi.useRealTimers()
   })
+
   it('should be able to check in', async () => {
-
-    
-
     const { checkIn } = await sut.execute({
       gymId: 'gym-01',
       userId: 'user-01',
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -27.2092052,
+      userLongitude: -49.6401091,
     })
 
     expect(checkIn.id).toEqual(expect.any(String))
   })
-  it('should be able to check in twice in the same day', async () => {
+
+  it('should not be able to check in twice in the same day', async () => {
     vi.setSystemTime(new Date(2022, 0, 20, 8, 0, 0))
 
     await sut.execute({
       gymId: 'gym-01',
       userId: 'user-01',
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -27.2092052,
+      userLongitude: -49.6401091,
     })
 
     await expect(() =>
       sut.execute({
         gymId: 'gym-01',
         userId: 'user-01',
-        userLatitude: 0,
-        userLongitude: 0,
-      })
+        userLatitude: -27.2092052,
+        userLongitude: -49.6401091,
+      }),
     ).rejects.toBeInstanceOf(Error)
   })
+
   it('should be able to check in twice but in different days', async () => {
     vi.setSystemTime(new Date(2022, 0, 20, 8, 0, 0))
 
     await sut.execute({
       gymId: 'gym-01',
       userId: 'user-01',
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -27.2092052,
+      userLongitude: -49.6401091,
     })
 
     vi.setSystemTime(new Date(2022, 0, 21, 8, 0, 0))
@@ -79,10 +77,30 @@ describe('Check-in Use Case', () => {
     const { checkIn } = await sut.execute({
       gymId: 'gym-01',
       userId: 'user-01',
-      userLatitude: 0,
-      userLongitude: 0,
+      userLatitude: -27.2092052,
+      userLongitude: -49.6401091,
     })
 
     expect(checkIn.id).toEqual(expect.any(String))
+  })
+
+  it('should not be able to check in on distant gym', async () => {
+    gymsRepository.items.push({
+      id: 'gym-02',
+      title: 'JavaScript Gym',
+      description: '',
+      phone: '',
+      latitude: new Decimal(-27.0747279),
+      longitude: new Decimal(-49.4889672),
+    })
+
+    await expect(() =>
+      sut.execute({
+        gymId: 'gym-02',
+        userId: 'user-01',
+        userLatitude: -27.2092052,
+        userLongitude: -49.6401091,
+      }),
+    ).rejects.toBeInstanceOf(Error)
   })
 })
