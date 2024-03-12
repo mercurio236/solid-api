@@ -9,7 +9,7 @@
     "start": "node build/server.js",
     "test": "vitest run --dir src/use-cases",
     "test:watch": "vitest --dir src/uses-cases",
-    "test:e2e":"vitest --dir src/http",
+    "test:e2e": "vitest --dir src/http",
     "test:coverage": "vitest run --coverage",
     "test:ui": "vitest --ui"
   },
@@ -19,9 +19,11 @@
   "devDependencies": {
     "@types/bcryptjs": "2.4.6",
     "@types/node": "20.11.3",
+    "@types/supertest": "6.0.2",
     "@vitest/coverage-v8": "1.2.1",
     "@vitest/ui": "1.2.1",
     "prisma": "5.8.1",
+    "supertest": "6.3.4",
     "tsup": "8.0.1",
     "tsx": "4.7.0",
     "typescript": "5.3.3",
